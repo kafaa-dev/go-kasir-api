@@ -14,10 +14,22 @@ type Product struct {
 	Stock int    `json:"stock"`
 }
 
+type Category struct {
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
 var products = []Product{
 	{ID: 1, Name: "Mie rebus", Price: 3500, Stock: 10},
 	{ID: 2, Name: "Air minum 800ml", Price: 3000, Stock: 40},
 	{ID: 3, Name: "Kecap", Price: 12000, Stock: 20},
+}
+
+var categories = []Category{
+	{ID: 1, Name: "Makanan", Description: "Apapun yang bisa dan aman untuk dimakan."},
+	{ID: 2, Name: "Minuman", Description: "Apapun yang bisa dan aman untuk diminum."},
+	{ID: 3, Name: "Bahan penyedap", Description: "Sesuatu yang dicampur ke makanan untuk memberikan rasa sedap."},
 }
 
 func main() {
@@ -28,6 +40,8 @@ func main() {
 	http.HandleFunc("GET /api/products/{id}", getProductHandler)
 	http.HandleFunc("PUT /api/products/{id}", updateProductHandler)
 	http.HandleFunc("DELETE /api/products/{id}", deleteProductHandler)
+
+	http.HandleFunc("GET /api/categories", listCategoriesHandler)
 
 	log.Println("Server listening on port 8080")
 
@@ -141,4 +155,10 @@ func deleteProductHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Error(w, "Product not found", http.StatusNotFound)
+}
+
+func listCategoriesHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	json.NewEncoder(w).Encode(categories)
 }
