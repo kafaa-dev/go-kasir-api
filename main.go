@@ -43,6 +43,7 @@ func main() {
 
 	http.HandleFunc("GET /api/categories", listCategoriesHandler)
 	http.HandleFunc("POST /api/categories", createCategoryHandler)
+	http.HandleFunc("GET /api/categories/{id}", getCategoryHandler)
 
 	log.Println("Server listening on port 8080")
 
@@ -179,4 +180,24 @@ func createCategoryHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 
 	json.NewEncoder(w).Encode(newCategory)
+}
+
+func getCategoryHandler(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid Category ID", http.StatusBadRequest)
+		return
+	}
+
+	for _, category := range categories {
+		if category.ID == id {
+			w.Header().Set("Content-Type", "application/json")
+
+			json.NewEncoder(w).Encode(category)
+			return
+		}
+	}
+
+	http.Error(w, "Category not found", http.StatusNotFound)
 }
