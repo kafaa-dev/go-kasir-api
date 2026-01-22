@@ -23,6 +23,7 @@ func main() {
 	http.HandleFunc("GET /health", checkHealthHandler)
 
 	http.HandleFunc("GET /api/products", listProductsHandler)
+	http.HandleFunc("POST /api/products", createProductHandler)
 
 	log.Println("Server listening on port 8080")
 
@@ -42,4 +43,22 @@ func listProductsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	json.NewEncoder(w).Encode(products)
+}
+
+func createProductHandler(w http.ResponseWriter, r *http.Request) {
+	var newProduct Product
+
+	err := json.NewDecoder(r.Body).Decode(&newProduct)
+	if err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	newProduct.ID = len(products) + 1
+	products = append(products, newProduct)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	json.NewEncoder(w).Encode(newProduct)
 }
