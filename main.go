@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 type Product struct {
@@ -24,6 +25,7 @@ func main() {
 
 	http.HandleFunc("GET /api/products", listProductsHandler)
 	http.HandleFunc("POST /api/products", createProductHandler)
+	http.HandleFunc("GET /api/products/{id}", getProductHandler)
 
 	log.Println("Server listening on port 8080")
 
@@ -61,4 +63,24 @@ func createProductHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 
 	json.NewEncoder(w).Encode(newProduct)
+}
+
+func getProductHandler(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid Product ID", http.StatusBadRequest)
+		return
+	}
+
+	for _, product := range products {
+		if product.ID == id {
+			w.Header().Set("Content-Type", "application/json")
+
+			json.NewEncoder(w).Encode(product)
+			return
+		}
+	}
+
+	http.Error(w, "Product not found", http.StatusNotFound)
 }
