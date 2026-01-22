@@ -45,6 +45,7 @@ func main() {
 	http.HandleFunc("POST /api/categories", createCategoryHandler)
 	http.HandleFunc("GET /api/categories/{id}", getCategoryHandler)
 	http.HandleFunc("PUT /api/categories/{id}", updateCategoryHandler)
+	http.HandleFunc("DELETE /api/categories/{id}", deleteCategoryHandler)
 
 	log.Println("Server listening on port 8080")
 
@@ -226,6 +227,31 @@ func updateCategoryHandler(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 
 			json.NewEncoder(w).Encode(category)
+
+			return
+		}
+	}
+
+	http.Error(w, "Category not found", http.StatusNotFound)
+}
+
+func deleteCategoryHandler(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid Category ID", http.StatusBadRequest)
+		return
+	}
+
+	for i, category := range categories {
+		if category.ID == id {
+			categories = append(categories[:i], categories[i+1:]...)
+
+			w.Header().Set("Content-Type", "application/json")
+
+			json.NewEncoder(w).Encode(map[string]string{
+				"message": "sukses delete",
+			})
 
 			return
 		}
