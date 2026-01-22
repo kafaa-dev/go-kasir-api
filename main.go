@@ -26,6 +26,7 @@ func main() {
 	http.HandleFunc("GET /api/products", listProductsHandler)
 	http.HandleFunc("POST /api/products", createProductHandler)
 	http.HandleFunc("GET /api/products/{id}", getProductHandler)
+	http.HandleFunc("PUT /api/products/{id}", updateProductHandler)
 
 	log.Println("Server listening on port 8080")
 
@@ -78,6 +79,37 @@ func getProductHandler(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 
 			json.NewEncoder(w).Encode(product)
+			return
+		}
+	}
+
+	http.Error(w, "Product not found", http.StatusNotFound)
+}
+
+func updateProductHandler(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid Product ID", http.StatusBadRequest)
+		return
+	}
+
+	var product Product
+	err = json.NewDecoder(r.Body).Decode(&product)
+	if err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+	product.ID = id
+
+	for i := range products {
+		if products[i].ID == id {
+			products[i] = product
+
+			w.Header().Set("Content-Type", "application/json")
+
+			json.NewEncoder(w).Encode(product)
+
 			return
 		}
 	}
