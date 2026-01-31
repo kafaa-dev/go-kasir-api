@@ -8,9 +8,18 @@ import (
 	"kasir-api/services"
 	"log"
 	"net/http"
+	"os"
 )
 
+type Config struct {
+	Port string
+}
+
 func main() {
+	config := Config{
+		Port: os.Getenv("PORT"),
+	}
+
 	http.HandleFunc("GET /health", checkHealthHandler)
 
 	productRepository := repositories.NewProductRepository(database.Products)
@@ -33,9 +42,9 @@ func main() {
 	http.HandleFunc("PUT /api/categories/{id}", categoryHandler.Update)
 	http.HandleFunc("DELETE /api/categories/{id}", categoryHandler.Delete)
 
-	log.Println("Server listening on port 8080")
+	log.Println("Server listening on port " + config.Port)
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":"+config.Port, nil))
 }
 
 func checkHealthHandler(w http.ResponseWriter, r *http.Request) {
