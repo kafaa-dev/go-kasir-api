@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"kasir-api/database"
 	"kasir-api/handlers"
+	"kasir-api/models"
 	"kasir-api/repositories"
 	"kasir-api/services"
 	"log"
@@ -15,6 +15,18 @@ type Config struct {
 	Port string
 }
 
+var products = []models.Product{
+	{ID: 1, Name: "Mie rebus", Price: 3500, Stock: 10},
+	{ID: 2, Name: "Air minum 800ml", Price: 3000, Stock: 40},
+	{ID: 3, Name: "Kecap", Price: 12000, Stock: 20},
+}
+
+var categories = []models.Category{
+	{ID: 1, Name: "Makanan", Description: "Apapun yang bisa dan aman untuk dimakan."},
+	{ID: 2, Name: "Minuman", Description: "Apapun yang bisa dan aman untuk diminum."},
+	{ID: 3, Name: "Bahan penyedap", Description: "Sesuatu yang dicampur ke makanan untuk memberikan rasa sedap."},
+}
+
 func main() {
 	config := Config{
 		Port: os.Getenv("PORT"),
@@ -22,7 +34,7 @@ func main() {
 
 	http.HandleFunc("GET /health", checkHealthHandler)
 
-	productRepository := repositories.NewProductRepository(database.Products)
+	productRepository := repositories.NewProductRepository(products)
 	productService := services.NewProductService(productRepository)
 	productHandler := handlers.NewProductHandler(productService)
 
@@ -32,7 +44,7 @@ func main() {
 	http.HandleFunc("PUT /api/products/{id}", productHandler.Update)
 	http.HandleFunc("DELETE /api/products/{id}", productHandler.Delete)
 
-	categoryRepository := repositories.NewCategoryRepository(database.Categories)
+	categoryRepository := repositories.NewCategoryRepository(categories)
 	categoryService := services.NewCategoryService(categoryRepository)
 	categoryHandler := handlers.NewCategoryHandler(categoryService)
 
