@@ -83,6 +83,7 @@ func (h *CategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
 	err = h.service.Update(&category)
 	if err != nil {
 		http.Error(w, "Category not found", http.StatusNotFound)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
