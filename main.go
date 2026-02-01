@@ -9,10 +9,13 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
+
+	"github.com/spf13/viper"
 )
 
 type Config struct {
-	Port string
+	Port string `mapstructure:"PORT"`
 }
 
 var products = []models.Product{
@@ -28,8 +31,16 @@ var categories = []models.Category{
 }
 
 func main() {
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+
+	if _, err := os.Stat(".env"); err == nil {
+		viper.SetConfigFile(".env")
+		_ = viper.ReadInConfig()
+	}
+
 	config := Config{
-		Port: os.Getenv("PORT"),
+		Port: viper.GetString("PORT"),
 	}
 
 	http.HandleFunc("GET /health", checkHealthHandler)
