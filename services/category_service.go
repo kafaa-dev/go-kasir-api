@@ -25,8 +25,8 @@ func (s *CategoryService) GetByID(id int) (*models.Category, error) {
 	return s.repo.GetByID(id)
 }
 
-func (s *CategoryService) Update(Category *models.Category) error {
-	return s.repo.Update(Category)
+func (s *CategoryService) Update(category *models.Category) error {
+	return s.repo.Update(category)
 }
 
 func (s *CategoryService) Delete(id int) error {
