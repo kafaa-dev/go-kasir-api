@@ -5,6 +5,7 @@ import (
 	"kasir-api/models"
 	"kasir-api/services"
 	"net/http"
+	"time"
 )
 
 type TransactionHandler struct {
@@ -31,4 +32,19 @@ func (h *TransactionHandler) Checkout(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(transaction)
+}
+
+func (h *TransactionHandler) ReportToday(w http.ResponseWriter, r *http.Request) {
+	today := time.Now()
+	startOfDay := time.Date(today.Year(), today.Month(), today.Day(), 0, 0, 0, 0, today.Location())
+	endOfDay := startOfDay.AddDate(0, 0, 1).Add(-time.Nanosecond)
+
+	report, err := h.service.GetReport(&startOfDay, &endOfDay)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(report)
 }

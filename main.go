@@ -66,6 +66,7 @@ func main() {
 	transactionHandler := handlers.NewTransactionHandler(transactionService)
 
 	http.HandleFunc("POST /api/checkout", transactionHandler.Checkout)
+	http.HandleFunc("GET /api/report/today", transactionHandler.ReportToday)
 
 	log.Println("Server listening on port " + config.Port)
 

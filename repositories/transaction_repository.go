@@ -2,7 +2,10 @@ package repositories
 
 import (
 	"database/sql"
+	"fmt"
 	"kasir-api/models"
+	"strings"
+	"time"
 )
 
 type TransactionRepository struct {
@@ -76,4 +79,105 @@ func (repo *TransactionRepository) CreateTransaction(items []models.CheckoutItem
 	}
 
 	return res, nil
+}
+
+func (repo *TransactionRepository) GetTotalTransactions(from *time.Time, to *time.Time) (int, error) {
+	query := "SELECT COUNT(*) FROM transactions"
+	args := []interface{}{}
+	argPos := 1
+	conditions := []string{}
+
+	if from != nil {
+		conditions = append(conditions, fmt.Sprintf("created_at >= $%d", argPos))
+		args = append(args, *from)
+		argPos++
+	}
+
+	if to != nil {
+		conditions = append(conditions, fmt.Sprintf("created_at <= $%d", argPos))
+		args = append(args, *to)
+		argPos++
+	}
+
+	if len(conditions) > 0 {
+		query += " WHERE " + strings.Join(conditions, " AND ")
+	}
+
+	var count int
+	err := repo.db.QueryRow(query, args...).Scan(&count)
+	return count, err
+}
+
+func (repo *TransactionRepository) GetTotalRevenue(from *time.Time, to *time.Time) (int, error) {
+	query := "SELECT COALESCE(SUM(total_amount), 0) FROM transactions"
+	args := []interface{}{}
+	argPos := 1
+	conditions := []string{}
+
+	if from != nil {
+		conditions = append(conditions, fmt.Sprintf("created_at >= $%d", argPos))
+		args = append(args, *from)
+		argPos++
+	}
+	if to != nil {
+		conditions = append(conditions, fmt.Sprintf("created_at <= $%d", argPos))
+		args = append(args, *to)
+		argPos++
+	}
+
+	if len(conditions) > 0 {
+		query += " WHERE " + strings.Join(conditions, " AND ")
+	}
+
+	var total int
+	err := repo.db.QueryRow(query, args...).Scan(&total)
+	return total, err
+}
+
+func (repo *TransactionRepository) GetBestSellingProduct(from *time.Time, to *time.Time) (*models.SoldProduct, error) {
+	query := `
+SELECT p.name, SUM(td.quantity) AS qty_sold
+FROM transaction_details td
+JOIN products p ON td.product_id = p.id
+JOIN transactions t ON td.transaction_id = t.id
+`
+	args := []interface{}{}
+	argPos := 1
+	conditions := []string{}
+
+	if from != nil {
+		conditions = append(conditions, fmt.Sprintf("t.created_at >= $%d", argPos))
+		args = append(args, *from)
+		argPos++
+	}
+	if to != nil {
+		conditions = append(conditions, fmt.Sprintf("t.created_at <= $%d", argPos))
+		args = append(args, *to)
+		argPos++
+	}
+
+	if len(conditions) > 0 {
+		query += " WHERE " + strings.Join(conditions, " AND ")
+	}
+
+	query += `
+GROUP BY p.id
+ORDER BY qty_sold DESC
+LIMIT 1
+`
+
+	var name string
+	var qty int
+	err := repo.db.QueryRow(query, args...).Scan(&name, &qty)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.SoldProduct{
+		Name:         name,
+		QuantitySold: qty,
+	}, nil
 }
