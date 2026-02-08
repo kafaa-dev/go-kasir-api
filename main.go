@@ -61,6 +61,12 @@ func main() {
 	http.HandleFunc("PUT /api/categories/{id}", categoryHandler.Update)
 	http.HandleFunc("DELETE /api/categories/{id}", categoryHandler.Delete)
 
+	transactionRepository := repositories.NewTransactionRepository(db)
+	transactionService := services.NewTransactionService(transactionRepository)
+	transactionHandler := handlers.NewTransactionHandler(transactionService)
+
+	http.HandleFunc("POST /api/checkout", transactionHandler.Checkout)
+
 	log.Println("Server listening on port " + config.Port)
 
 	log.Fatal(http.ListenAndServe(":"+config.Port, nil))

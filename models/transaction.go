@@ -14,3 +14,12 @@ type TransactionDetail struct {
 	Quantity      int    `json:"quantity"`
 	Subtotal      int    `json:"subtotal"`
 }
+
+type CheckoutRequest struct {
+	Items []CheckoutItem `json:"items"`
+}
+
+type CheckoutItem struct {
+	ProductID int `json:"product_id"`
+	Quantity  int `json:"quantity"`
+}
