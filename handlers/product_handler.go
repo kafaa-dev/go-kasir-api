@@ -17,7 +17,9 @@ func NewProductHandler(service *services.ProductService) *ProductHandler {
 }
 
 func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	products, err := h.service.GetAll()
+	nameFilter := r.URL.Query().Get("name")
+
+	products, err := h.service.GetAll(nameFilter)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
